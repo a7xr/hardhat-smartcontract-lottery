@@ -62,7 +62,8 @@ contract Raffle is VRFConsumerBaseV2 {
   }
 
   function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
-    //   console.log("")
+    uint256 indexOfWinner = ranoomWords[0] % s_players.length;
+    address payable recentWinner = s_players[indexOfWinner];
   }
 
   function getPlayer(uint256 index) public view returns (address) {
