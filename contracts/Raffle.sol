@@ -10,7 +10,13 @@ error Raffle__TransferFailed();
 error Raffle__NotOpen();
 error Raffle__UpkeepNotNeeded(uint256 currentBalance, uint256 numPlayers, uint256 raffleState);
 
-// Raffle
+/** @title a sample Raffle Contract
+ * @author Author001
+ * @notice This contract is for creating an untamperable xxx
+ * @dev This implements Chainlink VRF v2 and chainlinkKeepers 
+
+  */
+
 contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
   /* Type declarations */
   enum RaffleState {
@@ -76,7 +82,7 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
    * they look for the `upkeepNeeded` to return true
    */
   function checkUpkeep(
-    bytes calldata /* checkData */
+    bytes memory /* checkData */
   )
     public
     override
@@ -141,10 +147,24 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
   function getRecentWinner() public view returns (address) {
     return s_recentWinner;
   }
+
+  function getRaffleState() public view returns (RaffleState) {
+    return s_raffleState;
+  }
+
+  function getNumWords() public pure returns (uint256) {
+    return NUM_WORDS;
+  }
+
+  function getNumberOfPlayers() public view returns (uint256) {
+    return s_players.length;
+  }
+
+  function getLatestTimeStamp() public view returns (uint256) {
+    return s_lastTimeStamp;
+  }
+
+  function getRequestConfirmations() public pure returns (uint256) {
+    return REQUEST_CONFIRMATIONS;
+  }
 }
-
-// Enter the lottery paying some amount
-// Pick a random winner
-// Winner to be selected every XMinutes -> completely automated
-
-// Chainlink Oracle -> Randomness, automated execution ( Chainlink Keeper )
