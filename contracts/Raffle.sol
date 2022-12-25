@@ -29,6 +29,8 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
   // Lottery variables
   address private s_recentWinner;
   RaffleState private s_raffleState;
+  uint256 private s_lastTimeStamp;
+  uint256 private immutable i_interval;
 
   event RaffleEnter(address indexed player);
   event RequestedRaffleWinner(uint256 indexed requestId);
@@ -39,7 +41,8 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
     uint256 entranceFee,
     bytes32 gasLane,
     uint64 subscriptionId,
-    uint32 callbackGasLimit
+    uint32 callbackGasLimit,
+    uint256 interval
   ) VRFConsumerBaseV2(vrfCoordinatorV2) {
     i_entranceFee = entranceFee;
     i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinatorV2);
@@ -47,6 +50,8 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
     i_subscriptionId = subscriptionId;
     i_callbackGasLimit = callbackGasLimit;
     s_raffleState = RaffleState.OPEN;
+    s_lastTimeStamp = block.timestamp;
+    i_interval = interval;
   }
 
   function getEntranceFee() public view returns (uint256) {
@@ -69,7 +74,22 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
    * @dev This is tue functin that the Chainlink Keeper nodes call
    * they look for the `upkeepNeeded` to return true
    */
-  function checkUpkeep(bytes calldata checkData) external override {}
+  function checkUpkeep(
+    bytes calldata /* checkData */
+  )
+    external
+    override
+    returns (
+      bool upkeepNeeded,
+      bytes memory /* performData */
+    )
+  {
+    bool isOpen = (RaffleState.OPEN == s_raffleState);
+    bool timePassed = ((block.timestamp - s_lastTimeStamp) > i_interval);
+    bool hasPlayers = (s_players.length > 0);
+    bool hasBalance = address(this).balance > 0;
+    upkeepNeeded = (isOpen && timePassed && hasPlayers && hasBalance);
+  }
 
   function requestRandomWinner() external {
     // Request a random number
@@ -94,6 +114,7 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
     address payable recentWinner = s_players[indexOfWinner];
     s_recentWinner = recentWinner;
     s_raffleState = RaffleState.OPEN;
+    s_players = new address payable[](0);
     (bool success, ) = recentWinner.call{value: address(this).balance}("");
     if (!success) {
       revert Raffle__TransferFailed();
