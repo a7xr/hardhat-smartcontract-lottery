@@ -39,5 +39,8 @@ const { assert, expect } = require("chai")
             "RaffleEnter"
           )
         })
+        it("doesnt allow entrance when raffle is calculating", async function () {
+          await raffle.enterRaffle({ value: raffleEntranceFee })
+        })
       })
     })
