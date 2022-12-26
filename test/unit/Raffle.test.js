@@ -85,4 +85,42 @@ const { assert, expect } = require("chai")
           assert(upkeepNeeded)
         })
       })
+      describe("performUpkeep", async function () {
+        it("it can only run if checkupkeep is true", async () => {
+          await raffle.enterRaffle({ value: raffleEntranceFee })
+          await network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
+          await network.provider.send("evm_mine", [])
+          const tx = await raffle.performUpkeep([])
+          assert(tx)
+        })
+        it("reverts when checkupkeep is false", async () => {
+          await expect(raffle.performUpkeep([])).to.be.revertedWith("Raffle__UpkeepNotNeeded")
+        })
+        it("updates the raffle state, emits and event, and calls the vrf corrdinator", async () => {
+          await raffle.enterRaffle({ value: raffleEntranceFee })
+          await network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
+          await network.provider.send("evm_mine", [])
+          const txResponse = await raffle.performUpkeep([])
+          const txReceipt = await txResponse.wait(1)
+          const requestId = txReceipt.events[1].args.requestId
+          const raffleState = await raffle.getRaffleState()
+          assert(requestId.toNumber() > 0)
+          assert(raffleState == 1)
+        })
+      })
+      describe("fulfillRandomWords", async function () {
+        beforeEach(async () => {
+          await raffle.enterRaffle({ value: raffleEntranceFee })
+          await network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
+          await network.provider.request({ method: "evm_mine", params: [] })
+        })
+        it("can only be called after performupkeep", async () => {
+          await expect(
+            vrfCoordinatorV2Mock.fulfillRandomWords(0, raffle.address) // reverts if not fulfilled
+          ).to.be.revertedWith("nonexistent request")
+          await expect(
+            vrfCoordinatorV2Mock.fulfillRandomWords(1, raffle.address) // reverts if not fulfilled
+          ).to.be.revertedWith("nonexistent request")
+        })
+      })
     })
