@@ -28,7 +28,7 @@ module.exports = {
     },
   },
   solidity: "0.8.7",
-  gasReporter:{
+  gasReporter: {
     enabled: false,
     currency: "USD",
     outputFile: "gas-report.txt",
@@ -42,5 +42,8 @@ module.exports = {
     player: {
       default: 1,
     },
+  },
+  mocha: {
+    timeout: 200000,
   },
 }
