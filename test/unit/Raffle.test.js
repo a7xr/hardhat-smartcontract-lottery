@@ -133,21 +133,21 @@ const { assert, expect } = require("chai")
             // raffle = raffleContract.connect(accounts[i]) // Returns a new instance of the Raffle contract connected to player
             // await raffle.enterRaffle({ value: raffleEntranceFee })
           }
-          const startingTimeStamp = await raffle.getLastTimeStamp()
+          const startingTimeStamp = await raffle.getLatestTimeStamp()
 
           await new Promise(async (resolve, reject) => {
             raffle.once("WinnerPicked", async () => {
               console.log("Found the event!")
               try {
-                console.log(recentWinner)
-                console.log(accounts[2])
-                console.log(accounts[0])
-                console.log(accounts[1])
-                console.log(accounts[3])
                 const recentWinner = await raffle.getRecentWinner()
+                console.log(recentWinner)
+                console.log(accounts[2].address)
+                console.log(accounts[0].address)
+                console.log(accounts[1].address)
+                console.log(accounts[3].address)
                 const raffleState = await raffle.getRaffleState()
-                // const winnerBalance = await accounts[2].getBalance()
-                const endingTimeStamp = await raffle.getLastTimeStamp()
+                const winnerBalance = await accounts[2].getBalance()
+                const endingTimeStamp = await raffle.getLatestTimeStamp()
                 const numPlayers = await raffle.getNumberOfPlayers()
                 assert.equal(numPlayers.toString(), "0")
                 assert.equal(raffleState.toString(), "0")
@@ -170,7 +170,7 @@ const { assert, expect } = require("chai")
             })
             const tx = await raffle.performUpkeep("0x")
             const txReceipt = await tx.wait(1)
-            // const startingBalance = await accounts[2].getBalance()
+            const startingBalance = await accounts[2].getBalance()
             await vrfCoordinatorV2Mock.fulfillRandomWords(
               txReceipt.events[1].args.requestId,
               raffle.address
