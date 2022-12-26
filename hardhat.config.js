@@ -28,6 +28,12 @@ module.exports = {
     },
   },
   solidity: "0.8.7",
+  gasReporter:{
+    enabled: false,
+    currency: "USD",
+    outputFile: "gas-report.txt",
+    noColors: true,
+  },
   namedAccounts: {
     deployer: {
       default: 0, // here this will by default take the first account as deployer
